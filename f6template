@@ -28,3 +28,30 @@
 		</div>
 	</body>
 </html>
+SET SERVEROUTPUT ON;
+-- set define off;
+variable res1 VARCHAR2(100):
+variable cas_gen1 VARCHAR(10);
+
+BEGIN
+	cas_gen1 := &1;
+	dbms_output.put_line('test  :'|| cas_gen1);
+	select * into res1 from NCARO1.nrcutmcarass where cas_gen='cas_gen1' and cas_id_ass=381034444;
+END;
+/
+
+ERROR at line 2:
+ORA-06550: line 2, column 2:
+PLS-00201: identifier 'CAS_GEN1' must be declared
+ORA-06550: line 2, column 2:
+PL/SQL: Statement ignored
+ORA-06550: line 3, column 35:
+PLS-00201: identifier 'CAS_GEN1' must be declared
+ORA-06550: line 3, column 2:
+PL/SQL: Statement ignored
+ORA-06550: line 4, column 16:
+PLS-00201: identifier 'RES1' must be declared
+ORA-06550: line 4, column 21:
+PL/SQL: ORA-00904: : invalid identifier
+ORA-06550: line 4, column 2:
+PL/SQL: SQL Statement ignored
