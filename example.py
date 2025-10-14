@@ -1,53 +1,82 @@
-import tkinter as tk
-import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
-from tkinter import Menu
-from MainApp.classes.consultation import *
-from MainApp.classes.ajouts import *
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Page avec Navbar Bootstrap</title>
 
-class MainApp(tk.Tk):
-    def __init__(self):
-        super().__init__()
-        self.title("Gestionnaire de courses")
-        self.geometry("600x600")
-        #paramétrage de la page d'acceuil
-        self.container = tk.Frame(self)
-        self.container.pack(fill="both", expand=True)
-        #Liste des frames
-        self.frames = {}
+  <!-- Lien vers Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-        for f in (Prix,Magasin,Produit,AddMagasins):
-            name = f.__name__
-            frame = f(parent=self.container,controller=self)
-            self.frames[name] = frame
-            frame.grid(row=0,column=0,sticky="nsew")
+  <style>
+    html {
+      scroll-behavior: smooth; /* défilement fluide */
+    }
+    section {
+      padding: 100px 0;
+      min-height: 100vh;
+    }
+  </style>
+</head>
+<body>
 
-        #le menu
-        self.menubar = Menu(self)
-        #Menu pour la consultation
-        menu_consult = Menu(self.menubar,tearoff=0)
-        menu_consult.add_command(label="Prix",command=lambda: self.show_frame(page_name="Prix"))
-        menu_consult.add_command(label="Magasins",command=lambda:self.show_frame(page_name="Magasin"))
-        menu_consult.add_command(label="Produits",command=lambda:self.show_frame(page_name="Produit"))
-        #Menu pour l'ajout
-        menu_ajout = Menu(self.menubar,tearoff=0)
-        menu_ajout.add_command(label="Magasins",command=lambda:self.show_frame(page_name="AddMagasins"))
-        menu_ajout.add_command(label="Produits")
-        #Ajout dans la barre de menu
-        self.menubar.add_cascade(label="Consultation",menu=menu_consult)
-        self.menubar.add_cascade(label="Ajouts",menu=menu_ajout)
-        #On ajoute le menu dans l'app principale
-        self.config(menu=self.menubar)
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">MonSite</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-        #On affiche au démarra=ge la liste des prix
-        self.show_frame("Prix")
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link active" href="#accueil">Accueil</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#services">Services</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#projets">Projets</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#contact">Contact</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
 
-        print (self.frames)
+  <!-- Sections -->
+  <section id="accueil" class="bg-light text-center">
+    <div class="container">
+      <h1 class="display-4">Bienvenue</h1>
+      <p class="lead">Ceci est la section d'accueil.</p>
+    </div>
+  </section>
 
-    def show_frame(self,page_name):
+  <section id="services" class="bg-white text-center">
+    <div class="container">
+      <h2>Nos Services</h2>
+      <p>Découvrez ce que nous offrons à nos clients.</p>
+    </div>
+  </section>
 
-        frame = self.frames[page_name]
-        print(page_name)
-        frame.tkraise()
+  <section id="projets" class="bg-light text-center">
+    <div class="container">
+      <h2>Projets</h2>
+      <p>Voici quelques exemples de nos réalisations.</p>
+    </div>
+  </section>
 
-MainApp().mainloop()
+  <section id="contact" class="bg-white text-center">
+    <div class="container">
+      <h2>Contact</h2>
+      <p>Entrons en contact pour discuter de vos besoins.</p>
+    </div>
+  </section>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
