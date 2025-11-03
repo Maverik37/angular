@@ -76,3 +76,67 @@
 
 </body>
 </html>
+
+// Ton jeu de données
+var tableData = [
+  {
+    "id": 27,
+    "i_mois": "12/2024",
+    "i_t1": 1,
+    "i_t2": 9,
+    "i_t3": 14,
+    "i_t4": 14,
+    "i_t5": 4,
+    "i_delais_ok": 22,
+    "i_delais_ko": {
+      "nb": 4,
+      "tickets": [44150, 44158, 44187, 44023]
+    },
+    "i_livraison_ok": 31,
+    "i_livraison_ko": {
+      "nb": 2,
+      "tickets": [44170, 44172]
+    },
+    "i_nb_lots": 300,
+    "i_nb_known_lot": 265,
+    "i_nb_new_lot": 0,
+    "i_nb_new_version": 35,
+    "i_nb_artefacts": 1441,
+    "i_nb_maj_artefacts": 1269
+  }
+];
+
+var table = new Tabulator("#example-table", {
+  data: tableData,
+  layout: "fitColumns",
+  columns: [
+    {title: "Mois", field: "i_mois"},
+    {title: "T1", field: "i_t1"},
+    {title: "T2", field: "i_t2"},
+    {title: "T3", field: "i_t3"},
+    {title: "T4", field: "i_t4"},
+    {title: "T5", field: "i_t5"},
+    
+    // 👉 Colonne spéciale pour i_delais_ko
+    {
+      title: "Délai KO",
+      field: "i_delais_ko.nb",   // affiche le nombre
+      tooltip: function(cell){
+        let data = cell.getRow().getData();
+        let tickets = data.i_delais_ko?.tickets || [];
+        return tickets.length ? "Tickets : " + tickets.join(", ") : "Aucun ticket";
+      },
+    },
+
+    // Même principe pour i_livraison_ko
+    {
+      title: "Livraison KO",
+      field: "i_livraison_ko.nb",
+      tooltip: function(cell){
+        let data = cell.getRow().getData();
+        let tickets = data.i_livraison_ko?.tickets || [];
+        return tickets.length ? "Tickets : " + tickets.join(", ") : "Aucun ticket";
+      },
+    },
+  ]
+});
