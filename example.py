@@ -108,3 +108,56 @@ def get_cartographie():
                 }
 
     return cartographie
+
+
+
+№########
+
+from django.db import models
+from datetime import datetime
+import locale
+
+# Force la locale française pour les noms de mois
+try:
+    locale.setlocale(locale.LC_TIME, "fr_FR.UTF-8")
+except locale.Error:
+    # Sur Windows ou serveurs sans locale FR, on peut gérer manuellement
+    pass
+
+class MonthYearField(models.CharField):
+    """
+    Champ personnalisé pour stocker YYYY-MM
+    et afficher Mois Année en français (ex: 'Novembre 2025')
+    """
+    description = "Champ mois-année au format texte (YYYY-MM)"
+
+    def __init__(self, *args, **kwargs):
+        kwargs["max_length"] = 7  # ex: "2025-11"
+        super().__init__(*args, **kwargs)
+
+    def to_python(self, value):
+        """Convertit la valeur DB en texte affichable"""
+        if not value:
+            return None
+        if isinstance(value, datetime):
+            return value.strftime("%Y-%m")
+        # Si c’est une chaîne '2025-11' → 'Novembre 2025'
+        try:
+            date_obj = datetime.strptime(value, "%Y-%m")
+            return date_obj.strftime("%B %Y").capitalize()
+        except ValueError:
+            return value
+
+    def get_prep_value(self, value):
+        """Avant d’enregistrer, on convertit 'Novembre 2025' en '2025-11'"""
+        if not value:
+            return None
+        # Si déjà au bon format, on laisse
+        if isinstance(value, str) and len(value) == 7 and "-" in value:
+            return value
+        # Conversion du texte français → format YYYY-MM
+        try:
+            date_obj = datetime.strptime(value, "%B %Y")
+            return date_obj.strftime("%Y-%m")
+        except ValueError:
+            return value
