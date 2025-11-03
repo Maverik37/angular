@@ -161,3 +161,34 @@ class MonthYearField(models.CharField):
             return date_obj.strftime("%Y-%m")
         except ValueError:
             return value
+
+
+####
+qs = (
+    SuiviInstall.objects.filter(
+        su_statut__s_name__in=["Terminé", "Validation à cadrer"],
+        su_delivery_date__isnull=False,
+        su_desired_delivery_date__isnull=False,
+    )
+    .annotate(
+        mois=TruncMonth("su_delivery_date"),
+        desired_date=TruncDate("su_desired_delivery_date"),
+        real_date=TruncDate("su_delivery_date"),
+    )
+    .annotate(
+        dans_delai=Count(
+            Case(When(desired_date__gte=F("real_date"), then=1)),
+            output_field=IntegerField(),
+        ),
+        hors_delai=Count(
+            Case(When(real_date__gt=F("desired_date"), then=1)),
+            output_field=IntegerField(),
+        ),
+        tickets_hors_delai=ArrayAgg(
+            "su_mantis",
+            filter=Q(real_date__gt=F("desired_date"))
+        )
+    )
+    .values("mois", "dans_delai", "hors_delai", "tickets_hors_delai")
+    .order_by("mois")
+)
