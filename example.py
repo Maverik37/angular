@@ -198,23 +198,28 @@ qs = (
 from django.db.models import Count, Q, F
 from django.db.models.functions import TruncMonth
 
+from django.db.models import Count, Q, F
+from django.db.models.functions import TruncMonth
+
 def get_installations_stats():
     """
-    Retourne les statistiques mensuelles des installations :
-      - ok : livrées dans les délais
-      - ko : livrées hors délais
-      - tickets_ko : liste des N° mantis hors délai
+    Retourne un dictionnaire des installations par mois :
+    {
+        '2025-01': {'ok': 12, 'ko': 3, 'tickets_ko': [1234, 1237, 1240]},
+        '2025-02': {'ok': 9,  'ko': 1, 'tickets_ko': [1302]},
+        ...
+    }
     """
-    from .models import SuiviInstallation  # adapte le nom du modèle
+    from .models import SuiviInstallation  # adapte selon ton modèle
 
-    # Filtrage des statuts concernés
+    # Filtrage principal : statuts terminés ou à cartographier
     queryset = SuiviInstallation.objects.filter(
         su_statut__in=["Terminé", "Validation à cartographier"],
         su_delivery_date__isnull=False,
         su_desired_delivery_date__isnull=False
     )
 
-    # Regroupement par mois de livraison
+    # Agrégation mensuelle de base
     stats = (
         queryset
         .annotate(month=TruncMonth("su_delivery_date"))
@@ -226,25 +231,26 @@ def get_installations_stats():
         .order_by("month")
     )
 
-    # Construction des résultats avec liste des tickets hors délai
-    results = []
+    # Transformation en dictionnaire
+    results = {}
+
     for s in stats:
         month = s["month"]
+        month_key = month.strftime("%Y-%m")
 
-        # Récupération des mantis hors délai du mois
+        # Récupération des tickets hors délai pour ce mois
         hors_delais = list(
             queryset.filter(
-                su_delivery_date__month=month.month,
                 su_delivery_date__year=month.year,
+                su_delivery_date__month=month.month,
                 su_delivery_date__gt=F("su_desired_delivery_date")
             ).values_list("su_mantis", flat=True)
         )
 
-        results.append({
-            "month": month.strftime("%Y-%m"),
+        results[month_key] = {
             "ok": s["ok"],
             "ko": s["ko"],
-            "tickets_ko": hors_delais,
-        })
+            "tickets_ko": hors_delais
+        }
 
     return results
