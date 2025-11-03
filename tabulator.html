@@ -140,3 +140,36 @@ var table = new Tabulator("#example-table", {
     },
   ]
 });
+
+#######
+new Tabulator("#tableau", {
+    data: data,
+    layout: "fitDataStretch",
+    initialSort: [
+        {column: "i_mois", dir: "desc"} // tri par défaut: le plus récent d'abord
+    ],
+    columns: [
+        {
+            title: "Mois",
+            field: "i_mois",
+            sorter: function(a, b, aRow, bRow, column, dir, sorterParams){
+                // Format attendu: "MM/YYYY"
+                const [ma, ya] = a.split("/").map(Number);
+                const [mb, yb] = b.split("/").map(Number);
+
+                // Compare d'abord par année, puis par mois
+                if (ya !== yb) return ya - yb;
+                return ma - mb;
+            },
+            hozAlign: "center",
+        },
+        {
+            title: "Délai KO",
+            field: "i_delais_ko.nb",
+            tooltip: function(cell){
+                let tickets = cell.getRow().getData().i_delais_ko?.tickets || [];
+                return tickets.length ? "Tickets : " + tickets.join(", ") : "Aucun ticket";
+            },
+        },
+    ]
+});
