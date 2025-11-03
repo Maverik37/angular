@@ -173,3 +173,68 @@ new Tabulator("#tableau", {
         },
     ]
 });
+
+
+#######
+new Tabulator("#tableau", {
+    data: data,
+    layout: "fitDataStretch",
+    columns: [
+        { title: "Mois", field: "i_mois" },
+
+        {
+            title: "Délai KO",
+            field: "i_delais_ko.nb",
+            tooltip: function(e, cell, onRendered) {
+                const rowData = cell.getRow().getData();
+                const delais = rowData.i_delais_ko;
+
+                // S’il n’y a pas de KO, on ne montre rien
+                if (!delais || delais.nb <= 0) {
+                    return false; // 👉 désactive le tooltip
+                }
+
+                // Création du contenu DOM du tooltip
+                const el = document.createElement("div");
+                el.style.padding = "6px 10px";
+                el.style.background = "#333";
+                el.style.color = "white";
+                el.style.borderRadius = "6px";
+                el.style.maxWidth = "250px";
+
+                el.innerHTML = `
+                    <b>${delais.nb} ticket${delais.nb > 1 ? 's' : ''}</b><br>
+                    ${delais.tickets.join(", ")}
+                `;
+
+                return el;
+            },
+        },
+
+        {
+            title: "Livraison KO",
+            field: "i_livraison_ko.nb",
+            tooltip: function(e, cell, onRendered) {
+                const rowData = cell.getRow().getData();
+                const liv = rowData.i_livraison_ko;
+
+                if (!liv || liv.nb <= 0) {
+                    return false;
+                }
+
+                const el = document.createElement("div");
+                el.style.padding = "6px 10px";
+                el.style.background = "#333";
+                el.style.color = "white";
+                el.style.borderRadius = "6px";
+
+                el.innerHTML = `
+                    <b>${liv.nb} ticket${liv.nb > 1 ? 's' : ''}</b><br>
+                    ${liv.tickets.join(", ")}
+                `;
+
+                return el;
+            },
+        },
+    ]
+});
