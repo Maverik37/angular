@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Tableau Indicateurs</title>
+  <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"></script>
+</head>
+<body>
+
+<div id="tableau"></div>
+
+<script>
+  // Données exemple (basées sur ton image)
+  const data = [
+    {mois:"janv-25", delaisOK:22, delaisKO:5, livraisonOK:21, livraisonEchec:0, demandes:14, incidents:75, resolus:48},
+    {mois:"févr-25", delaisOK:18, delaisKO:8, livraisonOK:19, livraisonEchec:2, demandes:11, incidents:73, resolus:47},
+    {mois:"mars-25", delaisOK:23, delaisKO:5, livraisonOK:26, livraisonEchec:1, demandes:19, incidents:70, resolus:51},
+    {mois:"avr-25", delaisOK:25, delaisKO:6, livraisonOK:27, livraisonEchec:0, demandes:31, incidents:56, resolus:42},
+    {mois:"août-25", delaisOK:9, delaisKO:5, livraisonOK:13, livraisonEchec:1, demandes:14, incidents:75, resolus:48}
+  ];
+
+  // Définition du tableau
+  const table = new Tabulator("#tableau", {
+    data,
+    layout:"fitColumns",
+    columns:[
+      {title:"Mois", field:"mois", headerSort:false, frozen:true, width:100, cssClass:"bg-gray-100"},
+      {title:"Installations", columns:[
+        {title:"Délais OK", field:"delaisOK", hozAlign:"center", headerVertAlign:"bottom", cssClass:"bg-yellow-200"},
+        {title:"Délais KO", field:"delaisKO", hozAlign:"center", cssClass:"bg-yellow-200"},
+        {title:"Livraison OK", field:"livraisonOK", hozAlign:"center", cssClass:"bg-yellow-100"},
+        {title:"Livraison en échec", field:"livraisonEchec", hozAlign:"center", cssClass:"bg-yellow-100"},
+      ]},
+      {title:"Volume traité", columns:[
+        {title:"Demandes", field:"demandes", hozAlign:"center", cssClass:"bg-green-100"},
+        {title:"Incidents", field:"incidents", hozAlign:"center", cssClass:"bg-green-100"},
+        {title:"Résolus", field:"resolus", hozAlign:"center", cssClass:"bg-green-100"},
+      ]},
+    ],
+    rowFormatter:function(row){
+      // Exemple : surligner Août en vert
+      if(row.getData().mois === "août-25"){
+        row.getElement().style.backgroundColor = "#d9ead3";
+        row.getElement().style.fontWeight = "bold";
+      }
+    }
+  });
+</script>
+
+</body>
+</html>
