@@ -192,3 +192,59 @@ qs = (
     .values("mois", "dans_delai", "hors_delai", "tickets_hors_delai")
     .order_by("mois")
 )
+
+
+#######
+from django.db.models import Count, Q, F
+from django.db.models.functions import TruncMonth
+
+def get_installations_stats():
+    """
+    Retourne les statistiques mensuelles des installations :
+      - ok : livrées dans les délais
+      - ko : livrées hors délais
+      - tickets_ko : liste des N° mantis hors délai
+    """
+    from .models import SuiviInstallation  # adapte le nom du modèle
+
+    # Filtrage des statuts concernés
+    queryset = SuiviInstallation.objects.filter(
+        su_statut__in=["Terminé", "Validation à cartographier"],
+        su_delivery_date__isnull=False,
+        su_desired_delivery_date__isnull=False
+    )
+
+    # Regroupement par mois de livraison
+    stats = (
+        queryset
+        .annotate(month=TruncMonth("su_delivery_date"))
+        .values("month")
+        .annotate(
+            ok=Count("id", filter=Q(su_delivery_date__lte=F("su_desired_delivery_date"))),
+            ko=Count("id", filter=Q(su_delivery_date__gt=F("su_desired_delivery_date"))),
+        )
+        .order_by("month")
+    )
+
+    # Construction des résultats avec liste des tickets hors délai
+    results = []
+    for s in stats:
+        month = s["month"]
+
+        # Récupération des mantis hors délai du mois
+        hors_delais = list(
+            queryset.filter(
+                su_delivery_date__month=month.month,
+                su_delivery_date__year=month.year,
+                su_delivery_date__gt=F("su_desired_delivery_date")
+            ).values_list("su_mantis", flat=True)
+        )
+
+        results.append({
+            "month": month.strftime("%Y-%m"),
+            "ok": s["ok"],
+            "ko": s["ko"],
+            "tickets_ko": hors_delais,
+        })
+
+    return results
