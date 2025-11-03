@@ -2,49 +2,75 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Tableau Indicateurs</title>
-  <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet">
-  <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"></script>
+  <title>Suivi d’installation - Tabulator</title>
+
+  <!-- Lien vers Tabulator en local -->
+  <link href="Tabulator-master/dist/css/tabulator.min.css" rel="stylesheet">
+  <script src="Tabulator-master/dist/js/tabulator.min.js"></script>
+
+  <style>
+    body { font-family: sans-serif; margin: 30px; }
+    h2 { margin-bottom: 20px; }
+    /* Un peu de couleur comme dans ton Excel */
+    .type-col { background-color: #fce5cd; }        /* orange clair */
+    .install-col { background-color: #fff2cc; }     /* jaune clair */
+    .lots-col { background-color: #d9ead3; }        /* vert clair */
+    .artefact-col { background-color: #cfe2f3; }    /* bleu clair */
+  </style>
 </head>
 <body>
 
+<h2>📊 Suivi des installations</h2>
 <div id="tableau"></div>
 
 <script>
-  // Données exemple (basées sur ton image)
+  // Données d’exemple
   const data = [
-    {mois:"janv-25", delaisOK:22, delaisKO:5, livraisonOK:21, livraisonEchec:0, demandes:14, incidents:75, resolus:48},
-    {mois:"févr-25", delaisOK:18, delaisKO:8, livraisonOK:19, livraisonEchec:2, demandes:11, incidents:73, resolus:47},
-    {mois:"mars-25", delaisOK:23, delaisKO:5, livraisonOK:26, livraisonEchec:1, demandes:19, incidents:70, resolus:51},
-    {mois:"avr-25", delaisOK:25, delaisKO:6, livraisonOK:27, livraisonEchec:0, demandes:31, incidents:56, resolus:42},
-    {mois:"août-25", delaisOK:9, delaisKO:5, livraisonOK:13, livraisonEchec:1, demandes:14, incidents:75, resolus:48}
+    {mois:"janv-25", t1:3, t2:2, t3:1, t4:0, t5:0, delaiOK:22, delaiKO:3, livraisonOK:20, livraisonKO:1, totalLots:12, lotConnus:9, nouvVersion:2, nouvLots:1, totalArt:5, majArt:3},
+    {mois:"févr-25", t1:1, t2:3, t3:2, t4:1, t5:0, delaiOK:18, delaiKO:4, livraisonOK:17, livraisonKO:0, totalLots:10, lotConnus:7, nouvVersion:2, nouvLots:1, totalArt:4, majArt:2},
+    {mois:"mars-25", t1:2, t2:4, t3:1, t4:0, t5:0, delaiOK:20, delaiKO:2, livraisonOK:19, livraisonKO:1, totalLots:9, lotConnus:8, nouvVersion:1, nouvLots:0, totalArt:3, majArt:1}
   ];
 
   // Définition du tableau
-  const table = new Tabulator("#tableau", {
-    data,
-    layout:"fitColumns",
-    columns:[
-      {title:"Mois", field:"mois", headerSort:false, frozen:true, width:100, cssClass:"bg-gray-100"},
-      {title:"Installations", columns:[
-        {title:"Délais OK", field:"delaisOK", hozAlign:"center", headerVertAlign:"bottom", cssClass:"bg-yellow-200"},
-        {title:"Délais KO", field:"delaisKO", hozAlign:"center", cssClass:"bg-yellow-200"},
-        {title:"Livraison OK", field:"livraisonOK", hozAlign:"center", cssClass:"bg-yellow-100"},
-        {title:"Livraison en échec", field:"livraisonEchec", hozAlign:"center", cssClass:"bg-yellow-100"},
+  new Tabulator("#tableau", {
+    data: data,
+    layout: "fitDataStretch",
+    movableColumns: true,
+    resizableColumns: true,
+    columns: [
+      {title:"Mois", field:"mois", frozen:true, headerSort:false},
+
+      // --- GROUPE 1 : TYPE ---
+      {title:"Type", columns:[
+        {title:"1", field:"t1", hozAlign:"center", cssClass:"type-col"},
+        {title:"2", field:"t2", hozAlign:"center", cssClass:"type-col"},
+        {title:"3", field:"t3", hozAlign:"center", cssClass:"type-col"},
+        {title:"4", field:"t4", hozAlign:"center", cssClass:"type-col"},
+        {title:"5", field:"t5", hozAlign:"center", cssClass:"type-col"},
       ]},
-      {title:"Volume traité", columns:[
-        {title:"Demandes", field:"demandes", hozAlign:"center", cssClass:"bg-green-100"},
-        {title:"Incidents", field:"incidents", hozAlign:"center", cssClass:"bg-green-100"},
-        {title:"Résolus", field:"resolus", hozAlign:"center", cssClass:"bg-green-100"},
+
+      // --- GROUPE 2 : INSTALLATIONS ---
+      {title:"Délai et nombre de livraison", columns:[
+        {title:"Délai OK", field:"delaiOK", hozAlign:"center", cssClass:"install-col"},
+        {title:"Délai KO", field:"delaiKO", hozAlign:"center", cssClass:"install-col"},
+        {title:"Livraison OK", field:"livraisonOK", hozAlign:"center", cssClass:"install-col"},
+        {title:"Livraison KO", field:"livraisonKO", hozAlign:"center", cssClass:"install-col"},
       ]},
-    ],
-    rowFormatter:function(row){
-      // Exemple : surligner Août en vert
-      if(row.getData().mois === "août-25"){
-        row.getElement().style.backgroundColor = "#d9ead3";
-        row.getElement().style.fontWeight = "bold";
-      }
-    }
+
+      // --- GROUPE 3 : LOTS ---
+      {title:"Lots", columns:[
+        {title:"Total", field:"totalLots", hozAlign:"center", cssClass:"lots-col"},
+        {title:"Lots connus", field:"lotConnus", hozAlign:"center", cssClass:"lots-col"},
+        {title:"Nouv. version", field:"nouvVersion", hozAlign:"center", cssClass:"lots-col"},
+        {title:"Nouveaux lots", field:"nouvLots", hozAlign:"center", cssClass:"lots-col"},
+      ]},
+
+      // --- GROUPE 4 : ARTEFACTS ---
+      {title:"Artefacts", columns:[
+        {title:"Total", field:"totalArt", hozAlign:"center", cssClass:"artefact-col"},
+        {title:"Mis à jour", field:"majArt", hozAlign:"center", cssClass:"artefact-col"},
+      ]},
+    ]
   });
 </script>
 
