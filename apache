@@ -1,0 +1,24 @@
+# Configuration Apache pour le site permanent de DEV
+
+<VirtualHost *:80>
+    ServerName dev.local           # (Optionnel, mais recommandé)
+
+    # Alias pour les fichiers statiques
+    Alias /static/ /opt/livraison/launchserver/PASPE_DEV/STATICS/
+
+    <Directory /opt/livraison/launchserver/PASPE_DEV/STATICS>
+        Require all granted
+        Options FollowSymLinks
+        AllowOverride None
+    </Directory>
+
+    # Proxy vers l'application backend (par exemple sur un port interne)
+    ProxyPass /static/ !
+    ProxyPass / http://0.0.0.0:8062/
+    ProxyPassReverse / http://0.0.0.0:8062/
+
+    # Logs
+    LogLevel debug
+    ErrorLog /logs/PASPE_DEV/apache_error.log
+    CustomLog /logs/PASPE_DEV/access_log/apache.log "%h %l %u %t \"%r\" %>s %b"
+</VirtualHost>
