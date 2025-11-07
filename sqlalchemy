@@ -1,0 +1,105 @@
+from sqlalchemy import (
+    create_engine, Column, Integer, String, Table, ForeignKey
+)
+from sqlalchemy.orm import (
+    relationship, declarative_base, sessionmaker
+)
+
+Base = declarative_base()
+
+# Association table Livres <-> Auteurs (ManyToMany)
+livres_auteurs = Table(
+    "livres_auteurs",
+    Base.metadata,
+    Column("livre_id", Integer, ForeignKey("livres.id"), primary_key=True),
+    Column("auteur_id", Integer, ForeignKey("auteurs.id"), primary_key=True)
+)
+
+
+class Editeur(Base):
+    __tablename__ = "editeurs"
+
+    id = Column(Integer, primary_key=True)
+    nom = Column(String, unique=True, nullable=False)
+
+    livres = relationship("Livre", back_populates="editeur")
+
+    def __repr__(self):
+        return f"<Editeur(id={self.id}, nom='{self.nom}')>"
+
+
+class Genre(Base):
+    __tablename__ = "genres"
+
+    id = Column(Integer, primary_key=True)
+    nom = Column(String, unique=True, nullable=False)
+
+    livres = relationship("Livre", back_populates="genre")
+
+    def __repr__(self):
+        return f"<Genre(id={self.id}, nom='{self.nom}')>"
+
+
+class Auteur(Base):
+    __tablename__ = "auteurs"
+
+    id = Column(Integer, primary_key=True)
+    nom = Column(String, nullable=False)
+    prenom = Column(String, nullable=False)
+
+    livres = relationship(
+        "Livre",
+        secondary=livres_auteurs,
+        back_populates="auteurs"
+    )
+
+    def __repr__(self):
+        return f"<Auteur(id={self.id}, nom='{self.nom}', prenom='{self.prenom}')>"
+
+
+class Livre(Base):
+    __tablename__ = "livres"
+
+    id = Column(Integer, primary_key=True)
+    titre = Column(String, nullable=False)
+
+    genre_id = Column(Integer, ForeignKey("genres.id"))
+    editeur_id = Column(Integer, ForeignKey("editeurs.id"))
+
+    genre = relationship("Genre", back_populates="livres")
+    editeur = relationship("Editeur", back_populates="livres")
+    auteurs = relationship(
+        "Auteur",
+        secondary=livres_auteurs,
+        back_populates="livres"
+    )
+
+    def __repr__(self):
+        return f"<Livre(id={self.id}, titre='{self.titre}')>"
+
+
+# Exemple de configuration de la base et d'utilisation
+if __name__ == "__main__":
+    engine = create_engine("sqlite:///bibliotheque.db", echo=True)
+    Base.metadata.create_all(engine)
+
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    # Création d’exemples
+    genre_sf = Genre(nom="Science-Fiction")
+    editeur_gf = Editeur(nom="Gallimard")
+    auteur = Auteur(nom="Asimov", prenom="Isaac")
+
+    livre = Livre(
+        titre="Fondation",
+        genre=genre_sf,
+        editeur=editeur_gf,
+        auteurs=[auteur]
+    )
+
+    session.add(livre)
+    session.commit()
+
+    # Vérification
+    print(session.query(Livre).all())
