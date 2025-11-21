@@ -254,3 +254,42 @@ def get_installations_stats():
         }
 
     return results
+
+
+###########
+from django.db.models import Prefetch
+
+# Prefetch des lots pour éviter 1000 requêtes
+qs = (
+    Installation.objects
+    .prefetch_related(
+        Prefetch(
+            "su_lots",
+            queryset=Lot.objects.only("lot_name", "version")
+        )
+    )
+)
+
+result = []
+
+for inst in qs:
+    # Construction LOT@VERSION
+    lots_version = [
+        f"{lot.lot_name}@{lot.version}"
+        for lot in inst.su_lots.all()
+    ]
+
+    result.append({
+        "mantis": inst.su_mantis,
+        "type": inst.su_type,
+        "context": inst.su_contexte.c_name if inst.su_contexte else None,
+        "statut": inst.su_statut.s_name if inst.su_statut else None,
+        "date_livraison_souhaitee": inst.su_delivery_date.date() if inst.su_delivery_date else None,
+        "date_livraison_reelle": inst.su_real_delivery_date.date() if inst.su_real_delivery_date else None,
+        "nb_lots_connus": inst.su_nb_known_lot,
+        "nb_nouvelle_version": inst.su_nb_new_version,
+        "nb_nouveau_lot": inst.su_nb_new_lot,
+
+        # ✔ Liste LOT@VERSION
+        "lots_version": ", ".join(lots_version),
+    })
