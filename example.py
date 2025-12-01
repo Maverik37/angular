@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+8# -*- coding: utf-8 -*-
 import xml.etree.ElementTree as ET
 
 def update_logger_levels(element, new_level):
@@ -293,3 +293,78 @@ for inst in qs:
         # ✔ Liste LOT@VERSION
         "lots_version": ", ".join(lots_version),
     })
+
+
+
+
+from openpyxl import Workbook
+
+def creer_fichier_mantis(filepath="donnees_mantis.xlsx"):
+    # Données extraites de la photo
+    data = [
+        {
+            "mantis": 31492,
+            "type": "",
+            "coefforth": 0.0,
+            "contexte": "EQUAL2",
+            "statut_livraison": "OK",
+            "etat_livraison": 0,
+            "date_livraison_souhaite": "20/10/2022 00:00:00",
+            "date_prise_en_compte": None,
+            "date_installation": None,
+            "date_fin_installation": "19/10/2022 10:44:00",
+            "nb_lots_connus": 40.0,
+            "nb_nouvelles_versions": 0.0,
+            "lots_version": (
+                "Fusion Carrières; Schéma XCAR001.0.1|Habilitation9.3.1|MVC - Masse9.2.2|"
+                "MVC - Unitaire9.2.1|Momenclature9.2.0|1000 - Extraction9.0.1|"
+                "Service de Calcul du Quotient RCI - Schéma XCAR001.0.1|Synchronisation EC969.0.2"
+            )
+        },
+        {
+            "mantis": 34447,
+            "type": "",
+            "coefforth": 0.0,
+            "contexte": "EQUAL2",
+            "statut_livraison": "OK",
+            "etat_livraison": 0,
+            "date_livraison_souhaite": "25/11/2022 00:00:00",
+            "date_prise_en_compte": None,
+            "date_installation": None,
+            "date_fin_installation": "25/11/2022 12:40:00",
+            "nb_lots_connus": 11.0,
+            "nb_nouvelles_versions": 1.0,
+            "lots_version": "Synchronisation EC969.0.2"
+        },
+        {
+            "mantis": 35520,
+            "type": "",
+            "coefforth": 0.0,
+            "contexte": "EQUAL2",
+            "statut_livraison": "OK",
+            "etat_livraison": 0,
+            "date_livraison_souhaite": "09/12/2022 00:00:00",
+            "date_prise_en_compte": None,
+            "date_installation": None,
+            "date_fin_installation": "19/12/2022 08:30:00",
+            "nb_lots_connus": 13.0,
+            "nb_nouvelles_versions": 0.0,
+            "lots_version": "..."
+        }
+    ]
+
+    # Création du fichier
+    wb = Workbook()
+    ws = wb.active
+
+    # En-têtes
+    headers = list(data[0].keys())
+    ws.append(headers)
+
+    # Lignes
+    for row in data:
+        ws.append([row[h] for h in headers])
+
+    # Sauvegarde
+    wb.save(filepath)
+    print(f"Fichier créé : {filepath}")
