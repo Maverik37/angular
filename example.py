@@ -368,3 +368,111 @@ def creer_fichier_mantis(filepath="donnees_mantis.xlsx"):
     # Sauvegarde
     wb.save(filepath)
     print(f"Fichier créé : {filepath}")
+
+
+
+
+#############
+from openpyxl import Workbook
+from openpyxl.styles import numbers
+from datetime import datetime
+
+def creer_fichier_mantis(filepath="donnees_mantis.xlsx"):
+    def parse_date(value):
+        """Convertit une chaîne en datetime, sinon retourne None."""
+        if value is None:
+            return None
+        try:
+            return datetime.strptime(value, "%d/%m/%Y %H:%M:%S")
+        except:
+            return None
+
+    # Données extraites de la photo
+    data = [
+        {
+            "mantis": 31492,
+            "type": "",
+            "coefforth": 0.0,
+            "contexte": "EQUAL2",
+            "statut_livraison": "OK",
+            "etat_livraison": 0,
+            "date_livraison_souhaite": "20/10/2022 00:00:00",
+            "date_prise_en_compte": None,
+            "date_installation": None,
+            "date_fin_installation": "19/10/2022 10:44:00",
+            "nb_lots_connus": 40.0,
+            "nb_nouvelles_versions": 0.0,
+            "lots_version": "Fusion Carrières; Schéma XCAR001.0.1|...|Synchronisation EC969.0.2"
+        },
+        {
+            "mantis": 34447,
+            "type": "",
+            "coefforth": 0.0,
+            "contexte": "EQUAL2",
+            "statut_livraison": "OK",
+            "etat_livraison": 0,
+            "date_livraison_souhaite": "25/11/2022 00:00:00",
+            "date_prise_en_compte": None,
+            "date_installation": None,
+            "date_fin_installation": "25/11/2022 12:40:00",
+            "nb_lots_connus": 11.0,
+            "nb_nouvelles_versions": 1.0,
+            "lots_version": "Synchronisation EC969.0.2"
+        },
+        {
+            "mantis": 35520,
+            "type": "",
+            "coefforth": 0.0,
+            "contexte": "EQUAL2",
+            "statut_livraison": "OK",
+            "etat_livraison": 0,
+            "date_livraison_souhaite": "09/12/2022 00:00:00",
+            "date_prise_en_compte": None,
+            "date_installation": None,
+            "date_fin_installation": "19/12/2022 08:30:00",
+            "nb_lots_connus": 13.0,
+            "nb_nouvelles_versions": 0.0,
+            "lots_version": "..."
+        }
+    ]
+
+    wb = Workbook()
+    ws = wb.active
+
+    # En-têtes
+    headers = list(data[0].keys())
+    ws.append(headers)
+
+    # Colonnes considérées comme dates
+    date_columns = {
+        "date_livraison_souhaite",
+        "date_prise_en_compte",
+        "date_installation",
+        "date_fin_installation"
+    }
+
+    # Ajout des lignes + format date
+    for row in data:
+        excel_row = []
+        for h in headers:
+            value = row[h]
+
+            # Si c'est une date → conversion en datetime
+            if h in date_columns:
+                dt = parse_date(value)
+                excel_row.append(dt)
+            else:
+                excel_row.append(value)
+
+        ws.append(excel_row)
+
+    # Appliquer le format date aux colonnes concernées
+    for col_idx, header in enumerate(headers, start=1):
+        if header in date_columns:
+            for cell in ws.iter_cols(min_col=col_idx, max_col=col_idx, min_row=2):
+                for c in cell:
+                    if isinstance(c.value, datetime):
+                        c.number_format = numbers.FORMAT_DATE_DATETIME  # "dd/mm/yyyy hh:mm"
+
+    wb.save(filepath)
+    print(f"Fichier créé : {filepath}")
