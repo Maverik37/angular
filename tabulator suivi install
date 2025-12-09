@@ -117,12 +117,50 @@
         { title: "Contexte", field: "contexte", headerFilter: "input" },
 
         {
-          title: "Lots (C / NV / NL)",
-          field: "lots",
-          formatter: lotsFormatter,
-          tooltip: lotsTooltip,
-          headerFilter: false
-        },
+          {
+  title: "Lots (C / NV / NL)",
+  field: "lots",
+  hozAlign: "center",
+
+  formatter: function (cell) {
+    const data = cell.getRow().getData();
+    return `${data.nb_known_lot} / ${data.nb_new_version} / ${data.nb_new_lot}`;
+  },
+
+  tooltip: function (e, cell, onRendered) {
+    const rowData = cell.getRow().getData();
+    const lots = rowData.lots;
+
+    // ✅ S'il n'y a aucun lot → pas de tooltip
+    if (!lots || Object.keys(lots).length === 0) {
+      return false;
+    }
+
+    // ✅ Création du tooltip DOM (comme ton delais_ko)
+    const el = document.createElement("div");
+    el.style.padding = "6px 10px";
+    el.style.background = "#333";
+    el.style.color = "white";
+    el.style.borderRadius = "6px";
+    el.style.maxWidth = "300px";
+    el.style.fontSize = "13px";
+
+    let html = "";
+
+    Object.entries(lots).forEach(([name, lot]) => {
+      html += `<b>${name}</b> - ${lot.version}`;
+
+      if (lot.is_new_version) html += " <span style='color:#4CAF50'>[NEW VERSION]</span>";
+      if (lot.is_new_lot) html += " <span style='color:#FF9800'>[NEW LOT]</span>";
+
+      html += "<br>";
+    });
+
+    el.innerHTML = html;
+
+    return el;
+  }
+}
 
         { title: "Statut", field: "statut", headerFilter: "input" },
         { title: "Réception", field: "reception_date", headerFilter: "input" },
