@@ -1,24 +1,5 @@
-# Configuration Apache pour le site permanent de DEV
-
-<VirtualHost *:80>
-    ServerName dev.local           # (Optionnel, mais recommandé)
-
-    # Alias pour les fichiers statiques
-    Alias /static/ /opt/livraison/launchserver/PASPE_DEV/STATICS/
-
-    <Directory /opt/livraison/launchserver/PASPE_DEV/STATICS>
-        Require all granted
-        Options FollowSymLinks
-        AllowOverride None
-    </Directory>
-
-    # Proxy vers l'application backend (par exemple sur un port interne)
-    ProxyPass /static/ !
-    ProxyPass / http://0.0.0.0:8062/
-    ProxyPassReverse / http://0.0.0.0:8062/
-
-    # Logs
-    LogLevel debug
-    ErrorLog /logs/PASPE_DEV/apache_error.log
-    CustomLog /logs/PASPE_DEV/access_log/apache.log "%h %l %u %t \"%r\" %>s %b"
-</VirtualHost>
+{
+{'id': 4805, 'su_description': 'QFLIFA - Installation LIFA Unitaire - itération BL_LIFA_5.0.0.06.0', 'su_priorite': None, 'su_type_installation': <TypeInstallation: 4>, 'su_contexte': <Contexte: QFLIFA>, 'su_lots': OrderedDict([('LIFA-BDD', {'version': '5.0.0.06.0', 'is_new_version': True, 'is_new_lot': False}), ('LIFA-IHM', {'version': '5.0.0.06.0', 'is_new_version': True, 'is_new_lot': False}), ('LIFA-UNITAIRE', {'version': '5.0.0.06.0', 'is_new_version': True, 'is_new_lot': False})]), 'su_reception_date': datetime.datetime(2025, 12, 5, 0, 0), 'su_taken_date': datetime.datetime(2025, 12, 8, 14, 47), 'su_statut': <Statut: En cours d'analyse>, 'su_analyse_date': None, 'su_standby_date': None, 'su_install_date': None, 'su_test_date': None, 'su_desired_delivery_date': None, 'su_delivery_date': None, 'su_main_penv_user': <User: RBY>, 'su_other_penv_user': <django.db.models.fields.related_descriptors.create_forward_many_to_many_manager.<locals>.ManyRelatedManager object at 0x7ff25af7ae20>, 'su_commentary': '08/12/2025- Analyse en cours', 'su_nb_known_lot': 0, 'su_nb_new_version': 3, 'su_nb_new_lot': 0, 'su_is_manually_modified': False},
+{'id': 4803, 'su_description': '[IEAA-INST-0MAJ-x.x.x] - Install 3 - lot S15R150 sur INTG2', 'su_priorite': None, 'su_type_installation': <TypeInstallation: 2>, 'su_contexte': <Contexte: ENVINTG2>, 'su_lots': OrderedDict([('Module DSN Inter Régimes', {'version': '4.0.2', 'is_new_version': False, 'is_new_lot': False})]), 'su_reception_date': datetime.datetime(2025, 12, 5, 0, 0), 'su_taken_date': datetime.datetime(2025, 12, 5, 16, 48), 'su_statut': <Statut: A installer>, 'su_analyse_date': datetime.datetime(2025, 12, 8, 12, 31), 'su_standby_date': None, 'su_install_date': datetime.datetime(2025, 12, 8, 12, 31), 'su_test_date': None, 'su_desired_delivery_date': None, 'su_delivery_date': None, 'su_main_penv_user': <User: MBN>, 'su_other_penv_user': <django.db.models.fields.related_descriptors.create_forward_many_to_many_manager.<locals>.ManyRelatedManager object at 0x7ff25af8e8e0>, 'su_commentary': '08/12/2025- Installation en cours\n05/12/2025- Analyse en cours\n08/12/2025- En attente\n', 'su_nb_known_lot': 1, 'su_nb_new_version': 0, 'su_nb_new_lot': 0, 'su_is_manually_modified': False},
+{'id': 4785, 'su_description': '[IEAA-INST-0MAJ-x.x.x] - Install lot S15R160 sur INTG6', 'su_priorite': None, 'su_type_installation': <TypeInstallation: 3>, 'su_contexte': <Contexte: ENVINTG6>, 'su_lots': OrderedDict([('F16 - SAMI', {'version': '1.3.1', 'is_new_version': True, 'is_new_lot': False})]), 'su_reception_date': datetime.datetime(2025, 11, 27, 0, 0), 'su_taken_date': datetime.datetime(2025, 11, 28, 9, 53), 'su_statut': <Statut: Terminé>, 'su_analyse_date': datetime.datetime(2025, 11, 28, 12, 1), 'su_standby_date': None, 'su_install_date': datetime.datetime(2025, 11, 28, 12, 1), 'su_test_date': datetime.datetime(2025, 11, 28, 14, 26), 'su_desired_delivery_date': None, 'su_delivery_date': datetime.datetime(2025, 11, 28, 16, 50), 'su_main_penv_user': <User: LBM>, 'su_other_penv_user': <django.db.models.fields.related_descriptors.create_forward_many_to_many_manager.<locals>.ManyRelatedManager object at 0x7ff25af46b80>, 'su_commentary': '28/11/2025- Test(s) en cours\n28/11/2025- Installation en cours\n28/11/2025- Analyse en cours\n28/11/2025- En attente\n', 'su_nb_known_lot': 0, 'su_nb_new_version': 1, 'su_nb_new_lot': 0, 'su_is_manually_modified': False}
+}
