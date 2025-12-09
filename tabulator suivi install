@@ -13,8 +13,17 @@
       padding: 20px;
     }
 
-    #table {
-      margin-top: 20px;
+    /* 🎨 Couleurs par statut */
+    .statut-analyse {
+      background-color: #fff3cd !important;
+    }
+
+    .statut-install {
+      background-color: #cce5ff !important;
+    }
+
+    .statut-termine {
+      background-color: #d4edda !important;
     }
   </style>
 </head>
@@ -88,87 +97,102 @@
       return `${data.nb_known_lot} / ${data.nb_new_version} / ${data.nb_new_lot}`;
     }
 
-    function lotsTooltip(cell) {
-      const lots = cell.getValue();
-      let tooltip = "";
-
-      Object.entries(lots).forEach(([name, lot]) => {
-        tooltip += `${name} - ${lot.version}`;
-
-        if (lot.is_new_version) tooltip += " [NEW VERSION]";
-        if (lot.is_new_lot) tooltip += " [NEW LOT]";
-
-        tooltip += "\n";
-      });
-
-      return tooltip;
-    }
-
     const table = new Tabulator("#table", {
       data: tableData,
       layout: "fitColumns",
-      responsiveLayout: "collapse",
+
+      // 🎨 Coloration des lignes par statut
+      rowFormatter: function(row){
+        const data = row.getData();
+        const el = row.getElement();
+
+        el.classList.remove("statut-analyse", "statut-install", "statut-termine");
+
+        if (data.statut === "En cours d'analyse") {
+          el.classList.add("statut-analyse");
+        }
+        else if (data.statut === "A installer") {
+          el.classList.add("statut-install");
+        }
+        else if (data.statut === "Terminé") {
+          el.classList.add("statut-termine");
+        }
+      },
 
       columns: [
         { title: "ID", field: "id", headerFilter: "input" },
         { title: "Description", field: "description", headerFilter: "input" },
         { title: "Priorité", field: "priorite", headerFilter: "input" },
-        { title: "Type", field: "type_installation", headerFilter: "input" },
-        { title: "Contexte", field: "contexte", headerFilter: "input" },
 
         {
-          {
-  title: "Lots (C / NV / NL)",
-  field: "lots",
-  hozAlign: "center",
+          title: "Type",
+          field: "type_installation",
+          headerFilter: "list",
+          headerFilterParams: {
+            valuesLookup: true,
+            clearable: true
+          }
+        },
+        {
+          title: "Contexte",
+          field: "contexte",
+          headerFilter: "list",
+          headerFilterParams: {
+            valuesLookup: true,
+            clearable: true
+          }
+        },
 
-  formatter: function (cell) {
-    const data = cell.getRow().getData();
-    return `${data.nb_known_lot} / ${data.nb_new_version} / ${data.nb_new_lot}`;
-  },
+        {
+          title: "Lots (C / NV / NL)",
+          field: "lots",
+          hozAlign: "center",
+          formatter: lotsFormatter,
 
-  tooltip: function (e, cell, onRendered) {
-    const rowData = cell.getRow().getData();
-    const lots = rowData.lots;
+          tooltip: function (e, cell) {
+            const rowData = cell.getRow().getData();
+            const lots = rowData.lots;
 
-    // ✅ S'il n'y a aucun lot → pas de tooltip
-    if (!lots || Object.keys(lots).length === 0) {
-      return false;
-    }
+            if (!lots || Object.keys(lots).length === 0) return false;
 
-    // ✅ Création du tooltip DOM (comme ton delais_ko)
-    const el = document.createElement("div");
-    el.style.padding = "6px 10px";
-    el.style.background = "#333";
-    el.style.color = "white";
-    el.style.borderRadius = "6px";
-    el.style.maxWidth = "300px";
-    el.style.fontSize = "13px";
+            const el = document.createElement("div");
+            el.style.padding = "6px 10px";
+            el.style.background = "#333";
+            el.style.color = "white";
+            el.style.borderRadius = "6px";
+            el.style.maxWidth = "300px";
+            el.style.fontSize = "13px";
 
-    let html = "";
+            let html = "";
 
-    Object.entries(lots).forEach(([name, lot]) => {
-      html += `<b>${name}</b> - ${lot.version}`;
+            Object.entries(lots).forEach(([name, lot]) => {
+              html += `<b>${name}</b> - ${lot.version}`;
+              if (lot.is_new_version) html += " <span style='color:#4CAF50'>[NEW VERSION]</span>";
+              if (lot.is_new_lot) html += " <span style='color:#FF9800'>[NEW LOT]</span>";
+              html += "<br>";
+            });
 
-      if (lot.is_new_version) html += " <span style='color:#4CAF50'>[NEW VERSION]</span>";
-      if (lot.is_new_lot) html += " <span style='color:#FF9800'>[NEW LOT]</span>";
+            el.innerHTML = html;
+            return el;
+          }
+        },
 
-      html += "<br>";
-    });
+        {
+          title: "Statut",
+          field: "statut",
+          headerFilter: "list",
+          headerFilterParams: {
+            valuesLookup: true,
+            clearable: true
+          }
+        },
 
-    el.innerHTML = html;
-
-    return el;
-  }
-}
-
-        { title: "Statut", field: "statut", headerFilter: "input" },
         { title: "Réception", field: "reception_date", headerFilter: "input" },
         { title: "Prise en charge", field: "taken_date", headerFilter: "input" },
 
-        // Pas de filtre sur commentaire
-        { title: "Commentaire", field: "commentaire", headerFilter: false },
-      ],
+        // ❌ Pas de filtre sur commentaire
+        { title: "Commentaire", field: "commentaire", headerFilter: false }
+      ]
     });
   </script>
 
