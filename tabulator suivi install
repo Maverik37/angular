@@ -1,200 +1,249 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Tabulator - Suivi Installations</title>
+    <meta charset="UTF-8">
+    <title>Suivi Installation</title>
 
-  <!-- Tabulator CSS -->
-  <link href="https://unpkg.com/tabulator-tables@5.5.2/dist/css/tabulator.min.css" rel="stylesheet">
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
+    <!-- Bootstrap icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
-    /* 🎨 Couleurs par statut */
-    .statut-analyse {
-      background-color: #fff3cd !important;
-    }
+    <!-- Font Awesome (pour fa-gear comme tes templates) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-    .statut-install {
-      background-color: #cce5ff !important;
-    }
+    <!-- Tabulator -->
+    <link href="https://unpkg.com/tabulator-tables@5.5.2/dist/css/tabulator.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/tabulator-tables@5.5.2/dist/js/tabulator.min.js"></script>
 
-    .statut-termine {
-      background-color: #d4edda !important;
-    }
-  </style>
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <style>
+        .statut-en-analyse   { background-color:#caf7ff !important; }
+        .statut-a-installer  { background-color:#d4fcd1 !important; }
+        .statut-termine      { background-color:#d0ffd0 !important; }
+    </style>
 </head>
-<body>
 
-  <h2>Suivi des Installations</h2>
-  <div id="table"></div>
+<body class="p-3">
 
-  <!-- Tabulator JS -->
-  <script src="https://unpkg.com/tabulator-tables@5.5.2/dist/js/tabulator.min.js"></script>
+<div id="modal_container"></div>
 
-  <script>
-    const tableData = [
-      {
-        id: 4805,
-        description: "QFLIFA - Installation LIFA Unitaire - itération BL_LIFA_5.0.0.06.0",
-        priorite: null,
-        type_installation: "4",
-        contexte: "QFLIFA",
-        lots: {
-          "LIFA-BDD": { version: "5.0.0.06.0", is_new_version: true, is_new_lot: false },
-          "LIFA-IHM": { version: "5.0.0.06.0", is_new_version: true, is_new_lot: false },
-          "LIFA-UNITAIRE": { version: "5.0.0.06.0", is_new_version: true, is_new_lot: false }
-        },
-        statut: "En cours d'analyse",
-        reception_date: "2025-12-05",
-        taken_date: "2025-12-08 14:47",
-        commentaire: "08/12/2025- Analyse en cours",
-        nb_known_lot: 0,
-        nb_new_version: 3,
-        nb_new_lot: 0
-      },
-      {
-        id: 4803,
-        description: "[IEAA-INST-0MAJ-x.x.x] - Install 3 - lot S15R150 sur INTG2",
-        priorite: null,
-        type_installation: "2",
-        contexte: "ENVINTG2",
-        lots: {
-          "Module DSN Inter Régimes": { version: "4.0.2", is_new_version: false, is_new_lot: false }
-        },
-        statut: "A installer",
-        reception_date: "2025-12-05",
-        taken_date: "2025-12-05 16:48",
-        commentaire: "08/12/2025- Installation en cours\n05/12/2025- Analyse en cours\n08/12/2025- En attente",
-        nb_known_lot: 1,
-        nb_new_version: 0,
-        nb_new_lot: 0
-      },
-      {
-        id: 4785,
-        description: "[IEAA-INST-0MAJ-x.x.x] - Install lot S15R160 sur INTG6",
-        priorite: null,
-        type_installation: "3",
-        contexte: "ENVINTG6",
-        lots: {
-          "F16 - SAMI": { version: "1.3.1", is_new_version: true, is_new_lot: false }
-        },
-        statut: "Terminé",
-        reception_date: "2025-11-27",
-        taken_date: "2025-11-28 09:53",
-        commentaire: "28/11/2025- Test(s) en cours\n28/11/2025- Installation en cours\n28/11/2025- Analyse en cours\n28/11/2025- En attente",
-        nb_known_lot: 0,
-        nb_new_version: 1,
-        nb_new_lot: 0
-      }
-    ];
+<h3>Suivi des installations</h3>
+<div id="table-install"></div>
 
-    function lotsFormatter(cell) {
-      const data = cell.getRow().getData();
-      return `${data.nb_known_lot} / ${data.nb_new_version} / ${data.nb_new_lot}`;
+<script>
+
+    /* ===========================================================
+       1) TES DONNÉES (on peut te générer ce JSON côté Django)
+    =========================================================== */
+    const tableData = DATA_FROM_DJANGO;
+
+
+    /* ===========================================================
+       2) TOOLTIP LOTS (comme ton tooltip délai_ko)
+    =========================================================== */
+    function lotsTooltip(e, cell) {
+        const d = cell.getRow().getData();
+
+        if (!d.su_lots) return false;
+
+        const el = document.createElement("div");
+        el.style.padding = "6px 10px";
+        el.style.background = "#333";
+        el.style.color = "white";
+        el.style.borderRadius = "6px";
+        el.style.maxWidth = "250px";
+
+        let html = "<b>Lots :</b><br>";
+
+        Object.entries(d.su_lots).forEach(([nom, lot]) => {
+            html += `${nom} : ${lot.version}`;
+            if (lot.is_new_version) html += " <span style='color:#68f'>[New version]</span>";
+            if (lot.is_new_lot) html += " <span style='color:#6f8'>[New lot]</span>";
+            html += "<br>";
+        });
+
+        el.innerHTML = html;
+        return el;
     }
 
-    const table = new Tabulator("#table", {
-      data: tableData,
-      layout: "fitColumns",
 
-      // 🎨 Coloration des lignes par statut
-      rowFormatter: function(row){
-        const data = row.getData();
-        const el = row.getElement();
+    /* ===========================================================
+       3) FILTRES (select list, version moderne)
+    =========================================================== */
+    function uniqueValues(data, field) {
+        const values = [...new Set(data.map(x => x[field]))];
+        return values.map(v => ({ label: v, value: v }));
+    }
 
-        el.classList.remove("statut-analyse", "statut-install", "statut-termine");
 
-        if (data.statut === "En cours d'analyse") {
-          el.classList.add("statut-analyse");
-        }
-        else if (data.statut === "A installer") {
-          el.classList.add("statut-install");
-        }
-        else if (data.statut === "Terminé") {
-          el.classList.add("statut-termine");
-        }
-      },
+    /* ===========================================================
+       4) TABLEAU TABULATOR
+    =========================================================== */
+    const table = new Tabulator("#table-install", {
+        data: tableData,
+        layout: "fitColumns",
+        reactiveData: true,
+        height: "600px",
 
-      columns: [
-        { title: "ID", field: "id", headerFilter: "input" },
-        { title: "Description", field: "description", headerFilter: "input" },
-        { title: "Priorité", field: "priorite", headerFilter: "input" },
+        rowFormatter: function(row) {
+            const d = row.getData();
+            if (!d.su_statut) return;
 
-        {
-          title: "Type",
-          field: "type_installation",
-          headerFilter: "list",
-          headerFilterParams: {
-            valuesLookup: true,
-            clearable: true
-          }
-        },
-        {
-          title: "Contexte",
-          field: "contexte",
-          headerFilter: "list",
-          headerFilterParams: {
-            valuesLookup: true,
-            clearable: true
-          }
+            // couleurs dynamiques
+            const name = d.su_statut.toLowerCase();
+
+            if (name.includes("analyse")) row.getElement().classList.add("statut-en-analyse");
+            if (name.includes("installer")) row.getElement().classList.add("statut-a-installer");
+            if (name.includes("termin")) row.getElement().classList.add("statut-termine");
         },
 
-        {
-          title: "Lots (C / NV / NL)",
-          field: "lots",
-          hozAlign: "center",
-          formatter: lotsFormatter,
+        columns: [
 
-          tooltip: function (e, cell) {
-            const rowData = cell.getRow().getData();
-            const lots = rowData.lots;
+            /* =====================================================
+               Colonne ACTION (avec menu HTMX)
+            ===================================================== */
+            {
+                title: "Action",
+                field: "action",
+                width: 90,
+                hozAlign: "center",
+                headerSort: false,
+                formatter: function(cell){
+                    const d = cell.getRow().getData();
+                    return `
+                        <div class="dropdown">
+                            <button class="btn btn-secondary btn-sm dropdown-toggle"
+                                    type="button" data-bs-toggle="dropdown">
+                                <i class="fa-solid fa-gear"></i>
+                            </button>
 
-            if (!lots || Object.keys(lots).length === 0) return false;
+                            <ul class="dropdown-menu">
 
-            const el = document.createElement("div");
-            el.style.padding = "6px 10px";
-            el.style.background = "#333";
-            el.style.color = "white";
-            el.style.borderRadius = "6px";
-            el.style.maxWidth = "300px";
-            el.style.fontSize = "13px";
+                                <li>
+                                    <a class="dropdown-item"
+                                       hx-get="/suiviinstall/edit_mantis/${d.id}/"
+                                       hx-target="#modal_container"
+                                       hx-trigger="click"
+                                       hx-swap="innerHTML">
+                                        Modifier
+                                    </a>
+                                </li>
 
-            let html = "";
+                                <li>
+                                    <a class="dropdown-item"
+                                       hx-get="/suiviinstall/modal_remove/${d.id}/"
+                                       hx-target="#modal_container"
+                                       hx-trigger="click"
+                                       hx-swap="innerHTML">
+                                        Supprimer la ligne
+                                    </a>
+                                </li>
 
-            Object.entries(lots).forEach(([name, lot]) => {
-              html += `<b>${name}</b> - ${lot.version}`;
-              if (lot.is_new_version) html += " <span style='color:#4CAF50'>[NEW VERSION]</span>";
-              if (lot.is_new_lot) html += " <span style='color:#FF9800'>[NEW LOT]</span>";
-              html += "<br>";
-            });
+                                <li>
+                                    <a class="dropdown-item"
+                                       hx-get="/suiviinstall/edit_lots/${d.id}/"
+                                       hx-target="#modal_container"
+                                       hx-trigger="click"
+                                       hx-swap="innerHTML">
+                                        Lots
+                                    </a>
+                                </li>
 
-            el.innerHTML = html;
-            return el;
-          }
-        },
+                            </ul>
+                        </div>
+                    `;
+                }
+            },
 
-        {
-          title: "Statut",
-          field: "statut",
-          headerFilter: "list",
-          headerFilterParams: {
-            valuesLookup: true,
-            clearable: true
-          }
-        },
+            /* ID */
+            { title:"ID", field:"id", width:70, sorter:"number" },
 
-        { title: "Réception", field: "reception_date", headerFilter: "input" },
-        { title: "Prise en charge", field: "taken_date", headerFilter: "input" },
+            /* Priorité */
+            { title:"Priorité", field:"su_priorite", width:90 },
 
-        // ❌ Pas de filtre sur commentaire
-        { title: "Commentaire", field: "commentaire", headerFilter: false }
-      ]
+            /* Mantis */
+            {
+                title:"Mantis",
+                field:"su_mantis",
+                formatter:"html",
+                width:95,
+                formatter:function(cell){
+                    const v = cell.getValue();
+                    if (!v) return "";
+                    return `<a href="https://mantisbt-rgcu.cnvats.fr/view.php?id=${v}"
+                               target="_blank">${v}</a>`;
+                }
+            },
+
+            /* Description */
+            { title:"Titre", field:"su_description", width:300, headerFilter:"input" },
+
+            /* Type install (avec select filter moderne) */
+            {
+                title:"Type",
+                field:"su_type_installation",
+                headerFilter:"list",
+                headerFilterParams:{
+                    valuesLookup:true,
+                }
+            },
+
+            /* Contexte (avec select filter moderne) */
+            {
+                title:"Contexte",
+                field:"su_contexte",
+                headerFilter:"list",
+                headerFilterParams:{
+                    valuesLookup:true
+                }
+            },
+
+            /* Lots (tooltip custom, résumé compact) */
+            {
+                title:"Lots",
+                field:"su_lots",
+                hozAlign:"center",
+                width:140,
+                formatter:function(cell){
+                    const d = cell.getRow().getData();
+                    return `${d.su_nb_known_lot} / ${d.su_nb_new_version} / ${d.su_nb_new_lot}`;
+                },
+                tooltip: lotsTooltip
+            },
+
+            /* Statut (avec select filter moderne) */
+            {
+                title:"Statut",
+                field:"su_statut",
+                headerFilter:"list",
+                headerFilterParams:{
+                    valuesLookup:true
+                }
+            },
+
+            /* Commentaire (pas de filtre) */
+            {
+                title:"Commentaire",
+                field:"su_commentary",
+                width:250,
+                tooltip:true
+            },
+
+            /* Réception */
+            { title:"Réception", field:"su_reception_date", sorter:"date", width:120 }
+
+        ]
     });
-  </script>
+
+</script>
+
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>
