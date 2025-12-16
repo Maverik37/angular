@@ -131,3 +131,17 @@ def get_installations_with_lots_json():
         })
 
     return json.dumps(list(installations.values()), default=str, indent=2)
+
+########
+from django.contrib.auth.views import PasswordChangeView
+from django.contrib.auth import update_session_auth_hash
+from django.urls import reverse_lazy
+
+class CustomPasswordChangeView(PasswordChangeView):
+    template_name = "registration/password_modify.html"
+    success_url = reverse_lazy("app_index")
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        update_session_auth_hash(self.request, form.user)
+        return response
