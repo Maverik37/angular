@@ -76,87 +76,71 @@ def get_cartographie_from_carto(categorie):
 
 
 
-javascript:
+js:
+
 <script>
-/* --------------------------------------------------
-   Formatter cellule cartographie
--------------------------------------------------- */
-function cartoFormatter(cell){
-  const v = cell.getValue();
-  if (!v) return "";
+/* =========================
+   Données Django
+========================= */
+const data = {{ DATA | safe }};
 
-  return `
-    <div
-      style="
-        background:${v.color || '#ddd'};
-        padding:4px;
-        border-radius:4px;
-        font-size:11px;
-        line-height:1.2;
-      "
-      title="Ticket précédent : ${v.prev_ticket || '-'}"
-    >
-      <strong>${v.ticket || ""}</strong><br>
-      ${v.statut || ""}<br>
-      ${v.date || ""}
-    </div>
-  `;
+/* =========================
+   Formatter cellule ENV
+========================= */
+function envFormatter(cell) {
+    const v = cell.getValue();
+    if (!v) return "";
+
+    return `
+        <div style="
+            background:${v.color};
+            padding:4px;
+            border-radius:3px;
+            font-size:11px;
+            line-height:1.2;
+        ">
+            <div><b>M${v.ticket}</b> &nbsp; ${v.version}</div>
+            <div>${v.date ?? ""}</div>
+        </div>
+    `;
 }
 
-/* --------------------------------------------------
-   Construction dynamique des colonnes
--------------------------------------------------- */
-function buildColumns(contextes){
-  const columns = [
-    {
-      title: "Lot",
-      field: "lot",
-      frozen: true,
-      width: 220,
-    }
-  ];
+/* =========================
+   Génération dynamique colonnes
+========================= */
+function buildColumns(data) {
+    const columns = [
+        {
+            title: "Lot",
+            field: "lot",
+            frozen: true,
+            width: 260,
+            headerSort: false
+        }
+    ];
 
-  contextes.forEach(ctx => {
-    columns.push({
-      title: ctx,
-      field: ctx,
-      formatter: cartoFormatter,
+    if (!data.length) return columns;
+
+    const envs = Object.keys(data[0]).filter(k => k !== "lot");
+
+    envs.forEach(env => {
+        columns.push({
+            title: env,
+            field: env,
+            hozAlign: "center",
+            headerSort: false,
+            formatter: envFormatter
+        });
     });
-  });
 
-  return columns;
+    return columns;
 }
 
-/* --------------------------------------------------
+/* =========================
    Initialisation Tabulator
--------------------------------------------------- */
-const table = new Tabulator("#cartographie-table", {
-  layout: "fitColumns",
-  height: "75vh",
-  columns: [],
-  tooltips: true,
-  movableColumns: true,
-  resizableRows: false,
-});
+========================= */
+new Tabulator("#table-lots", {
+    data: data,
+    columns: buildColumns(data),
 
-/* --------------------------------------------------
-   Chargement des données
--------------------------------------------------- */
-function loadCartographie(categorie){
-  fetch(`/api/cartographie?categorie=${categorie}`)
-    .then(response => response.json())
-    .then(payload => {
-      // payload = { columns: [...], data: [...] }
-      table.setColumns(buildColumns(payload.columns));
-      table.replaceData(payload.data);
-    })
-    .catch(error => {
-      console.error("Erreur chargement cartographie :", error);
-    });
-}
-
-/* --------------------------------------------------
-   Chargement initial
--------------------------------------------------- */
-loadCartographie("QF");   // catégorie par défaut
-</script>
+    layout: "fitDataTable
