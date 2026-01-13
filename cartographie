@@ -1,84 +1,67 @@
 from collections import OrderedDict
-from django.db.models import (
-    Case, When, F, Max, Subquery, OuterRef, DateTimeField
-)
+from django.db.models import Case, When, F, DateTimeField
 
-def get_cartographie(categorie):
+def get_cartographie_from_carto(categorie):
     """
-    Retourne la cartographie Lot x Contexte pour une catégorie donnée
+    Cartographie Lot x Contexte à partir de la table Cartographie
     """
 
     cartographie = OrderedDict()
 
-    # --------------------------------------------------
-    # Subquery : dernière version par lot / contexte
-    # --------------------------------------------------
-    latest_version = (
-        SuiviInstall.objects.filter(
-            su_contexte__c_category=categorie,
-            su_contexte=OuterRef('suiviinstall__su_contexte_id'),
-            su_statut__in=[14, 12, 2, 11, 1],
-            su_lots=OuterRef('suiviinstall__su_lots'),
-        )
-        .values('su_lots')
-        .annotate(max_version=Max('su_lots__l_version'))
-        .values('max_version')[:1]
-    )
-
-    # --------------------------------------------------
-    # Requête principale
-    # --------------------------------------------------
     queryset = (
-        SuiviInstall.su_lots.through.objects.filter(
-            suiviinstall__su_statut__in=[14, 12, 2, 11, 1],
-            suiviinstall__su_contexte__c_category=categorie,
+        Cartographie.objects
+        .select_related(
+            "ca_lot",
+            "ca_contexte",
+            "ca_last_mantis__su_statut",
+            "ca_previous_mantis"
         )
+        .filter(ca_contexte__c_category=categorie)
         .annotate(
-            last_version=Subquery(latest_version),
-
             # Date affichée selon le statut
             display_date=Case(
-                When(suiviinstall__su_statut__s_name__icontains="analyse",
-                     then=F("suiviinstall__su_analyse_date")),
-                When(suiviinstall__su_statut__s_name__icontains="prise",
-                     then=F("suiviinstall__su_taken_date")),
-                When(suiviinstall__su_statut__s_name__icontains="install",
-                     then=F("suiviinstall__su_install_date")),
-                When(suiviinstall__su_statut__s_name__icontains="test",
-                     then=F("suiviinstall__su_test_date")),
-                When(suiviinstall__su_statut__s_name__icontains="livr",
-                     then=F("suiviinstall__su_delivery_date")),
-                When(suiviinstall__su_statut__s_name__icontains="attente",
-                     then=F("suiviinstall__su_standby_date")),
-                When(suiviinstall__su_statut__s_name__icontains="récep",
-                     then=F("suiviinstall__su_reception_date")),
+                When(ca_last_mantis__su_statut__s_name__icontains="analyse",
+                     then=F("ca_last_mantis__su_analyse_date")),
+                When(ca_last_mantis__su_statut__s_name__icontains="prise",
+                     then=F("ca_last_mantis__su_taken_date")),
+                When(ca_last_mantis__su_statut__s_name__icontains="install",
+                     then=F("ca_last_mantis__su_install_date")),
+                When(ca_last_mantis__su_statut__s_name__icontains="test",
+                     then=F("ca_last_mantis__su_test_date")),
+                When(ca_last_mantis__su_statut__s_name__icontains="livr",
+                     then=F("ca_last_mantis__su_delivery_date")),
+                When(ca_last_mantis__su_statut__s_name__icontains="attente",
+                     then=F("ca_last_mantis__su_standby_date")),
+                When(ca_last_mantis__su_statut__s_name__icontains="récep",
+                     then=F("ca_last_mantis__su_reception_date")),
                 default=None,
                 output_field=DateTimeField(),
             ),
 
             # Champs utiles
-            contexte=F("suiviinstall__su_contexte__c_name"),
-            lot_name=F("lot__l_name"),
-            lot_version=F("lot__l_version"),
-            ticket=F("suiviinstall__su_mantis"),
-            statut=F("suiviinstall__su_statut__s_name"),
-            color=F("suiviinstall__su_statut__s_color"),
+            lot_name=F("ca_lot__l_name"),
+            contexte=F("ca_contexte__c_name"),
+            ticket=F("ca_last_mantis__su_mantis"),
+            prev_ticket=F("ca_previous_mantis__su_mantis"),
+            statut=F("ca_last_mantis__su_statut__s_name"),
+            color=F("ca_last_mantis__su_statut__s_color"),
         )
-        .filter(lot__l_version=F("last_version"))
         .order_by("contexte", "lot_name")
     )
 
     # --------------------------------------------------
-    # Construction du dictionnaire final
+    # Construction Lot = ligne / Contexte = colonne
     # --------------------------------------------------
+    rows = OrderedDict()
+
     for row in queryset:
-        ctx = row.contexte
         lot = row.lot_name
+        ctx = row.contexte
 
-        if ctx not in cartographie:
-            cartographie[ctx] = OrderedDict()
+        if lot not in rows:
+            rows[lot] = {"lot": lot}
 
-        cartographie[ctx][lot] = {
+        rows[lot][ctx] = {
             "ticket": row.ticket,
             "statut": row.statut,
             "color": row.color,
@@ -86,6 +69,7 @@ def get_cartographie(categorie):
                 row.display_date.strftime("%d/%m/%Y")
                 if row.display_date else None
             ),
+            "prev_ticket": row.prev_ticket,
         }
 
-    return cartographie
+    return list(rows.values())
