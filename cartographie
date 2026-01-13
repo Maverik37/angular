@@ -27,3 +27,25 @@ cartos = (
         )
     )
 )
+
+from collections import defaultdict
+
+result = defaultdict(dict)
+
+for c in cartos:
+    lot = c.ca_lot.l_name
+    contexte = c.ca_contexte.c_name
+
+    last = c.ca_last_mantis
+    prev = c.ca_previous_mantis
+    statut = last.su_statut if last else None
+
+    result[lot]["lot"] = lot
+
+    result[lot][contexte] = {
+        "ticket": last.su_mantis if last else None,
+        "statut": statut.s_name if statut else None,
+        "color": statut.s_color if statut else "#ccc",
+        "date": c.display_date.strftime("%d/%m/%Y") if c.display_date else None,
+        "prev_ticket": prev.su_mantis if prev else None,
+    }
