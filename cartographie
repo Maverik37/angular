@@ -1,0 +1,29 @@
+cartos = (
+    Cartographie.objects
+    .select_related(
+        "ca_lot",
+        "ca_contexte",
+        "ca_last_mantis__su_statut",
+        "ca_previous_mantis"
+    )
+    .filter(ca_contexte__c_env=env)
+    .annotate(
+        display_date=Case(
+            When(ca_last_mantis__su_statut__s_name__icontains="analyse",
+                 then=F("ca_last_mantis__su_analyse_date")),
+            When(ca_last_mantis__su_statut__s_name__icontains="prise",
+                 then=F("ca_last_mantis__su_taken_date")),
+            When(ca_last_mantis__su_statut__s_name__icontains="install",
+                 then=F("ca_last_mantis__su_install_date")),
+            When(ca_last_mantis__su_statut__s_name__icontains="test",
+                 then=F("ca_last_mantis__su_test_date")),
+            When(ca_last_mantis__su_statut__s_name__icontains="livr",
+                 then=F("ca_last_mantis__su_delivery_date")),
+            When(ca_last_mantis__su_statut__s_name__icontains="attente",
+                 then=F("ca_last_mantis__su_standby_date")),
+            When(ca_last_mantis__su_statut__s_name__icontains="récep",
+                 then=F("ca_last_mantis__su_reception_date")),
+            output_field=DateTimeField(),
+        )
+    )
+)
