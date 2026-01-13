@@ -73,3 +73,90 @@ def get_cartographie_from_carto(categorie):
         }
 
     return list(rows.values())
+
+
+
+javascript:
+<script>
+/* --------------------------------------------------
+   Formatter cellule cartographie
+-------------------------------------------------- */
+function cartoFormatter(cell){
+  const v = cell.getValue();
+  if (!v) return "";
+
+  return `
+    <div
+      style="
+        background:${v.color || '#ddd'};
+        padding:4px;
+        border-radius:4px;
+        font-size:11px;
+        line-height:1.2;
+      "
+      title="Ticket précédent : ${v.prev_ticket || '-'}"
+    >
+      <strong>${v.ticket || ""}</strong><br>
+      ${v.statut || ""}<br>
+      ${v.date || ""}
+    </div>
+  `;
+}
+
+/* --------------------------------------------------
+   Construction dynamique des colonnes
+-------------------------------------------------- */
+function buildColumns(contextes){
+  const columns = [
+    {
+      title: "Lot",
+      field: "lot",
+      frozen: true,
+      width: 220,
+    }
+  ];
+
+  contextes.forEach(ctx => {
+    columns.push({
+      title: ctx,
+      field: ctx,
+      formatter: cartoFormatter,
+    });
+  });
+
+  return columns;
+}
+
+/* --------------------------------------------------
+   Initialisation Tabulator
+-------------------------------------------------- */
+const table = new Tabulator("#cartographie-table", {
+  layout: "fitColumns",
+  height: "75vh",
+  columns: [],
+  tooltips: true,
+  movableColumns: true,
+  resizableRows: false,
+});
+
+/* --------------------------------------------------
+   Chargement des données
+-------------------------------------------------- */
+function loadCartographie(categorie){
+  fetch(`/api/cartographie?categorie=${categorie}`)
+    .then(response => response.json())
+    .then(payload => {
+      // payload = { columns: [...], data: [...] }
+      table.setColumns(buildColumns(payload.columns));
+      table.replaceData(payload.data);
+    })
+    .catch(error => {
+      console.error("Erreur chargement cartographie :", error);
+    });
+}
+
+/* --------------------------------------------------
+   Chargement initial
+-------------------------------------------------- */
+loadCartographie("QF");   // catégorie par défaut
+</script>
