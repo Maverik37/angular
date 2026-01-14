@@ -35,6 +35,18 @@ function contextCellFormatter(cell) {
     </div>
   `;
 }
+{
+  title: "Lot",
+  field: "lot",
+  width: 380,
+  frozen: true,
+  headerFilter: "input",
+  headerFilterFunc: function(value, data) {
+    if (!value) return true;
+    return data.startsWith(value);
+  },
+  headerFilterPlaceholder: "Ex: F11"
+}
 
 
 // =====================
