@@ -46,7 +46,8 @@ const columns = [
     field: "lot",
     frozen: true,
     width: 380,
-    headerFilter: "input"
+    headerFilter: "input",
+    headerFilterPlaceholder: "Rechercher un lot..."
   }
 ];
 
@@ -70,4 +71,27 @@ new Tabulator("#table", {
   height: "85vh",
   reactiveData: true,
   tooltips: false // on gère nous-mêmes via title
+});
+
+#############################################
+
+<div id="table-wrapper">
+  <div id="table"></div>
+</div>
+
+#table-wrapper {
+  max-width: 1400px;      /* largeur max souhaitée */
+  margin: 0 auto;         /* centré */
+  overflow-x: auto;       /* scroll horizontal */
+}
+
+/* empêche Tabulator d'étirer les colonnes */
+.tabulator {
+  width: max-content !important;
+}
+new Tabulator("#table", {
+  layout: "fitData",   // ⚠️ important : pas fitColumns
+  height: "85vh",
+  reactiveData: true,
+  tooltips: false
 });
