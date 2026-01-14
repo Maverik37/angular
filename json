@@ -8,3 +8,66 @@ contexts = Array.from(
     )
   )
 ).sort();
+function contextCellFormatter(cell) {
+  const value = cell.getValue();
+  if (!value) return "";
+
+  const tooltip = value.prev_ticket
+    ? `Previous mantis : ${value.prev_ticket}`
+    : "";
+
+  return `
+    <div 
+      style="
+        background:${value.color};
+        border-radius:6px;
+        padding:6px;
+        font-size:12px;
+        line-height:1.4;
+        box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
+      "
+      title="${tooltip}"
+    >
+      <div style="font-weight:bold;">${value.statut}</div>
+      <div>Version : ${value.version}</div>
+      <div>Ticket : ${value.ticket}</div>
+      ${value.date ? `<div>Date : ${value.date}</div>` : ""}
+    </div>
+  `;
+}
+
+
+// =====================
+// 4. COLONNES TABULATOR
+// =====================
+const columns = [
+  {
+    title: "Lot",
+    field: "lot",
+    frozen: true,
+    width: 380,
+    headerFilter: "input"
+  }
+];
+
+contexts.forEach(ctx => {
+  columns.push({
+    title: ctx,
+    field: ctx,
+    hozAlign: "center",
+    formatter: contextCellFormatter
+  });
+});
+
+
+// =====================
+// 5. INIT TABULATOR
+// =====================
+new Tabulator("#table", {
+  data: rawData,
+  columns: columns,
+  layout: "fitData",
+  height: "85vh",
+  reactiveData: true,
+  tooltips: false // on gère nous-mêmes via title
+});
