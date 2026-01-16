@@ -226,3 +226,64 @@ document.getElementById("changePasswordForm").addEventListener("submit", functio
 });
 </script>
 {% endblock %}
+
+
+{% extends "Applications/base.html" %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 500px;">
+    <h3>Créer un compte</h3>
+
+    <form id="registerForm">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label>Nom d'utilisateur</label>
+            <input type="text" name="username" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label>Email</label>
+            <input type="email" name="email" class="form-control">
+        </div>
+
+        <div class="mb-3">
+            <label>Mot de passe</label>
+            <input type="password" name="password" class="form-control" required>
+        </div>
+
+        <button class="btn btn-primary w-100">Créer le compte</button>
+    </form>
+
+    <div id="error" class="text-danger mt-3"></div>
+</div>
+
+<script>
+document.getElementById("registerForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    fetch("{% url 'applications:api_register' %}", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": "{{ csrf_token }}",
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            username: this.username.value,
+            email: this.email.value,
+            password: this.password.value
+        })
+    })
+    .then(response => {
+        if (response.ok) {
+            window.location.href = "{% url 'login' %}";
+        } else {
+            return response.json().then(data => {
+                document.getElementById("error").innerText =
+                    JSON.stringify(data);
+            });
+        }
+    });
+});
+</script>
+{% endblock %}
