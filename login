@@ -177,3 +177,52 @@ tem0lates base.html
         </li>
     </ul>
 </div>
+
+{% extends "Applications/base.html" %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 500px;">
+    <h3>Changer le mot de passe</h3>
+
+    <form id="changePasswordForm">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label>Ancien mot de passe</label>
+            <input type="password" name="old_password" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label>Nouveau mot de passe</label>
+            <input type="password" name="new_password" class="form-control" required>
+        </div>
+
+        <button class="btn btn-primary w-100">Valider</button>
+    </form>
+</div>
+
+<script>
+document.getElementById("changePasswordForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    fetch("{% url 'applications:api_change_password' %}", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": "{{ csrf_token }}",
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            old_password: this.old_password.value,
+            new_password: this.new_password.value
+        })
+    })
+    .then(response => {
+        if (response.ok) {
+            window.location.href = "{% url 'login' %}";
+        } else {
+            alert("Erreur lors du changement de mot de passe");
+        }
+    });
+});
+</script>
+{% endblock %}
