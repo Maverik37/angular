@@ -301,3 +301,23 @@ def login_required_with_message(view_func):
             return redirect(reverse("login"))
         return view_func(request, *args, **kwargs)
     return wrapper
+
+from django.shortcuts import redirect
+from django.contrib import messages
+
+def htmx_login_required(view_func):
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            messages.warning(request, "Vous devez être connecté")
+
+            # Si requête HTMX
+            if request.headers.get("HX-Request"):
+                response = redirect("login")
+                response["HX-Redirect"] = response["Location"]
+                return response
+
+            return redirect("login")
+
+        return view_func(request, *args, **kwargs)
+
+    return _wrapped_view
