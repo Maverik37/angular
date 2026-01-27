@@ -321,3 +321,31 @@ def htmx_login_required(view_func):
         return view_func(request, *args, **kwargs)
 
     return _wrapped_view
+
+
+
+$(document).ready(function () {
+
+  $('#password').on('keyup', function () {
+    let value = $(this).val();
+
+    validate('.check-length i', value.length >= 8);
+    validate('.check-uppercase i', /[A-Z]/.test(value));
+    validate('.check-lowercase i', /[a-z]/.test(value));
+    validate('.check-number i', /[0-9]/.test(value));
+    validate('.check-special i', /[^A-Za-z0-9]/.test(value));
+  });
+
+  function validate(selector, isValid) {
+    if (isValid) {
+      $(selector)
+        .removeClass('fa-xmark text-danger')
+        .addClass('fa-check text-success');
+    } else {
+      $(selector)
+        .removeClass('fa-check text-success')
+        .addClass('fa-xmark text-danger');
+    }
+  }
+
+});
