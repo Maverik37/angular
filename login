@@ -349,3 +349,64 @@ $(document).ready(function () {
   }
 
 });
+
+
+
+
+$(document).ready(function () {
+
+  function validateIcon(selector, isValid) {
+    if (isValid) {
+      $(selector)
+        .removeClass('fa-xmark text-danger')
+        .addClass('fa-check text-success');
+    } else {
+      $(selector)
+        .removeClass('fa-check text-success')
+        .addClass('fa-xmark text-danger');
+    }
+  }
+
+  function checkSubmit() {
+    let password = $('#password').val();
+    let confirm  = $('#password_confirm').val();
+
+    let allValid =
+      password.length >= 8 &&
+      /[A-Z]/.test(password) &&
+      /[a-z]/.test(password) &&
+      /[0-9]/.test(password) &&
+      /[^A-Za-z0-9]/.test(password) &&
+      password === confirm;
+
+    $('#submit').prop('disabled', !allValid);
+  }
+
+  // 🔐 Validation des règles du mot de passe
+  $('#password').on('keyup', function () {
+    let value = $(this).val();
+
+    validateIcon('.check-length i', value.length >= 8);
+    validateIcon('.check-uppercase i', /[A-Z]/.test(value));
+    validateIcon('.check-lowercase i', /[a-z]/.test(value));
+    validateIcon('.check-number i', /[0-9]/.test(value));
+    validateIcon('.check-special i', /[^A-Za-z0-9]/.test(value));
+
+    // on re-vérifie le bouton
+    checkSubmit();
+  });
+
+  // 🔁 Validation de la confirmation
+  $('#password_confirm').on('keyup', function () {
+    let password = $('#password').val();
+    let confirm  = $(this).val();
+
+    validateIcon('.check-confirm i',
+      confirm !== '' && password === confirm
+    );
+
+    // on re-vérifie le bouton
+    checkSubmit();
+  });
+
+});
