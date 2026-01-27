@@ -476,3 +476,18 @@ def creer_fichier_mantis(filepath="donnees_mantis.xlsx"):
 
     wb.save(filepath)
     print(f"Fichier créé : {filepath}")
+
+
+
+from django.db.models import Case, When, Value, IntegerField
+
+suivis = SuiviInstall.objects.annotate(
+    statut_order=Case(
+        When(su_statut__s_name="en attente", then=Value(1)),
+        When(su_statut__s_name="a faire", then=Value(2)),
+        When(su_statut__s_name="en cours", then=Value(3)),
+        When(su_statut__s_name="terminée", then=Value(4)),
+        default=Value(99),
+        output_field=IntegerField(),
+    )
+).order_by("statut_order")
