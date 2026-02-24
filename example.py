@@ -494,8 +494,12 @@ suivis = SuiviInstall.objects.annotate(
 
 import io
 
+import io
+
 def update_property(filepath, target_key, new_value):
     lines = []
+    found = False
+    already_set = False
 
     with io.open(filepath, 'r', encoding='utf-8') as f:
         for line in f:
@@ -508,11 +512,31 @@ def update_property(filepath, target_key, new_value):
 
             if '=' in line:
                 key, value = line.split('=', 1)
-                if key.strip() == target_key:
-                    line = key.strip() + "=" + new_value + "\n"
+                key = key.strip()
+                value = value.strip()
+
+                if key == target_key:
+                    found = True
+
+                    if value == new_value:
+                        already_set = True
+                        lines.append(line)
+                        continue
+                    else:
+                        line = u"%s=%s\n" % (target_key, new_value)
 
             lines.append(line)
 
-    # Réécriture du fichier
+    if not found:
+        print("La clé '%s' n'existe pas dans le fichier." % target_key)
+        return
+
+    if already_set:
+        print("Aucune modification : la clé '%s' a déjà la valeur '%s'." % (target_key, new_value))
+        return
+
+    # Réécriture du fichier seulement si modification
     with io.open(filepath, 'w', encoding='utf-8') as f:
         f.writelines(lines)
+
+    print("Clé '%s' mise à jour avec la valeur '%s'." % (target_key, new_value))
