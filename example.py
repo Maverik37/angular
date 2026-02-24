@@ -491,3 +491,28 @@ suivis = SuiviInstall.objects.annotate(
         output_field=IntegerField(),
     )
 ).order_by("statut_order")
+
+import io
+
+def update_property(filepath, target_key, new_value):
+    lines = []
+
+    with io.open(filepath, 'r', encoding='utf-8') as f:
+        for line in f:
+            stripped = line.strip()
+
+            # Ignorer commentaires et lignes vides
+            if not stripped or stripped.startswith('#'):
+                lines.append(line)
+                continue
+
+            if '=' in line:
+                key, value = line.split('=', 1)
+                if key.strip() == target_key:
+                    line = key.strip() + "=" + new_value + "\n"
+
+            lines.append(line)
+
+    # Réécriture du fichier
+    with io.open(filepath, 'w', encoding='utf-8') as f:
+        f.writelines(lines)
