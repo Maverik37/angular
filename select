@@ -140,3 +140,42 @@ $(document).ready(function () {
         }
     });
 });
+
+
+$(document).ready(function () {
+
+    var table = $('#example').DataTable({
+        orderCellsTop: true,
+        initComplete: function () {
+            var api = this.api();
+
+            // Pour chaque colonne
+            api.columns().every(function (colIdx) {
+                var column = this;
+
+                // Cibler la ligne filters
+                var cell = $('.filters th').eq(colIdx);
+
+                // Créer le select
+                var select = $('<select><option value="">All</option></select>')
+                    .appendTo($(cell).empty())
+                    .on('click mousedown', function (e) {
+                        e.stopPropagation(); // évite le tri
+                    })
+                    .on('change', function () {
+                        var val = $.fn.dataTable.util.escapeRegex($(this).val());
+
+                        column
+                            .search(val ? '^' + val + '$' : '', true, false)
+                            .draw();
+                    });
+
+                // Remplir avec valeurs uniques
+                column.data().unique().sort().each(function (d) {
+                    select.append('<option value="' + d + '">' + d + '</option>');
+                });
+            });
+        }
+    });
+
+});
