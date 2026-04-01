@@ -1,125 +1,46 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<title>DataTable avec filtres</title>
-
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
-<style>
-thead input, thead select{
-width:100%;
-box-sizing:border-box;
-}
-</style>
-
-</head>
-
-<body>
-
-<button id="resetFilters">Reset filtres</button>
-
-<table id="suivinstallation" class="display" style="width:100%">
-
-<thead>
-
-<tr>
-<th>Application</th>
-<th>Nb</th>
-<th>Client</th>
-<th>Environnement</th>
-<th>Infos</th>
-<th>Date</th>
-</tr>
-
-<tr class="filters">
-<th></th>
-<th></th>
-<th></th>
-<th></th>
-<th></th>
-<th>
-<input type="date" id="minDate">
-<input type="date" id="maxDate">
-</th>
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr>
-<td>Install A</td>
-<td>4</td>
-<td>AGIRC-ARRCO</td>
-<td>ENVINTG3</td>
-<td>Lot connu</td>
-<td>17/03/2026</td>
-</tr>
-
-<tr>
-<td>Install B</td>
-<td>2</td>
-<td>CNAV</td>
-<td>ENVINTG5</td>
-<td>Nouvelle version</td>
-<td>20/03/2026</td>
-</tr>
-
-<tr>
-<td>Install C</td>
-<td>1</td>
-<td>ACC</td>
-<td>ENVQUAL1</td>
-<td>Nouveau lot</td>
-<td>26/03/2026</td>
-</tr>
-
-<tr>
-<td>Install D</td>
-<td>3</td>
-<td>POLE ENV</td>
-<td>ENVSTAT4</td>
-<td>Lot connu</td>
-<td>15/03/2026</td>
-</tr>
-
-</tbody>
-
-</table>
-
-<script>
+$(document).ready(function () {
 
 let table = new DataTable('#suivinstallation', {
 
+scrollX: true,
+orderCellsTop: true,
+
 initComplete: function () {
 
-this.api().columns().every(function (i) {
+let api = this.api();
 
-if (![2,3].includes(i)) return;
+api.columns().every(function (i) {
 
 let column = this;
+
+/*
+Colonnes avec select
+exemple : Client (4) et Contexte (5)
+à adapter selon ton tableau
+*/
+
+if (![4,5].includes(i)) return;
 
 let select = document.createElement("select");
 
 select.add(new Option("Tous",""));
 
-document.querySelectorAll('#suivinstallation thead tr.filters th')[i]
-.replaceChildren(select);
+$('.dataTables_scrollHead thead tr.filters th')
+.eq(i)
+.html(select);
 
 select.addEventListener("change", function () {
 
-column.search(select.value, {exact:true}).draw();
+column
+.search(select.value, {exact:true})
+.draw();
 
 });
 
 column.data()
 .unique()
 .sort()
-.each(function(d){
+.each(function (d) {
 
 select.add(new Option(d,d));
 
@@ -131,12 +52,15 @@ select.add(new Option(d,d));
 
 });
 
+
+/* FILTRE DATE RANGE */
+
 $.fn.dataTable.ext.search.push(function(settings,data){
 
-let min = document.getElementById("minDate").value;
-let max = document.getElementById("maxDate").value;
+let min = $('#minDate').val();
+let max = $('#maxDate').val();
 
-let date = data[5];
+let date = data[7]; // index colonne date
 
 if(!date) return true;
 
@@ -155,24 +79,32 @@ return false;
 
 });
 
-document.getElementById("minDate").addEventListener("change", ()=> table.draw());
-document.getElementById("maxDate").addEventListener("change", ()=> table.draw());
 
-document.getElementById("resetFilters").addEventListener("click", function(){
+/* REDRAW DATE */
 
-table.search("");
-table.columns().search("");
+$('#minDate').on('change', function(){
+table.draw();
+});
 
-document.querySelectorAll("thead select").forEach(s => s.value="");
+$('#maxDate').on('change', function(){
+table.draw();
+});
 
-document.getElementById("minDate").value="";
-document.getElementById("maxDate").value="";
+
+/* RESET FILTRES */
+
+$('#resetFilters').on('click', function(){
+
+table.search('');
+table.columns().search('');
+
+$('thead select').val('');
+
+$('#minDate').val('');
+$('#maxDate').val('');
 
 table.draw();
 
 });
 
-</script>
-
-</body>
-</html>
+});
