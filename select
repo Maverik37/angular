@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>DataTable avec filtres</title>
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+<style>
+thead input, thead select{
+width:100%;
+box-sizing:border-box;
+}
+</style>
+
+</head>
+
+<body>
+
+<button id="resetFilters">Reset filtres</button>
+
+<table id="suivinstallation" class="display" style="width:100%">
+
+<thead>
+
+<tr>
+<th>Application</th>
+<th>Nb</th>
+<th>Client</th>
+<th>Environnement</th>
+<th>Infos</th>
+<th>Date</th>
+</tr>
+
+<tr class="filters">
+<th></th>
+<th></th>
+<th></th>
+<th></th>
+<th></th>
+<th>
+<input type="date" id="minDate">
+<input type="date" id="maxDate">
+</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+<td>Install A</td>
+<td>4</td>
+<td>AGIRC-ARRCO</td>
+<td>ENVINTG3</td>
+<td>Lot connu</td>
+<td>17/03/2026</td>
+</tr>
+
+<tr>
+<td>Install B</td>
+<td>2</td>
+<td>CNAV</td>
+<td>ENVINTG5</td>
+<td>Nouvelle version</td>
+<td>20/03/2026</td>
+</tr>
+
+<tr>
+<td>Install C</td>
+<td>1</td>
+<td>ACC</td>
+<td>ENVQUAL1</td>
+<td>Nouveau lot</td>
+<td>26/03/2026</td>
+</tr>
+
+<tr>
+<td>Install D</td>
+<td>3</td>
+<td>POLE ENV</td>
+<td>ENVSTAT4</td>
+<td>Lot connu</td>
+<td>15/03/2026</td>
+</tr>
+
+</tbody>
+
+</table>
+
+<script>
+
+let table = new DataTable('#suivinstallation', {
+
+initComplete: function () {
+
+this.api().columns().every(function (i) {
+
+if (![2,3].includes(i)) return;
+
+let column = this;
+
+let select = document.createElement("select");
+
+select.add(new Option("Tous",""));
+
+document.querySelectorAll('#suivinstallation thead tr.filters th')[i]
+.replaceChildren(select);
+
+select.addEventListener("change", function () {
+
+column.search(select.value, {exact:true}).draw();
+
+});
+
+column.data()
+.unique()
+.sort()
+.each(function(d){
+
+select.add(new Option(d,d));
+
+});
+
+});
+
+}
+
+});
+
+$.fn.dataTable.ext.search.push(function(settings,data){
+
+let min = document.getElementById("minDate").value;
+let max = document.getElementById("maxDate").value;
+
+let date = data[5];
+
+if(!date) return true;
+
+let rowDate = new Date(date.split('/').reverse().join('-'));
+
+if(
+(!min && !max) ||
+(!min && rowDate <= new Date(max)) ||
+(new Date(min) <= rowDate && !max) ||
+(new Date(min) <= rowDate && rowDate <= new Date(max))
+){
+return true;
+}
+
+return false;
+
+});
+
+document.getElementById("minDate").addEventListener("change", ()=> table.draw());
+document.getElementById("maxDate").addEventListener("change", ()=> table.draw());
+
+document.getElementById("resetFilters").addEventListener("click", function(){
+
+table.search("");
+table.columns().search("");
+
+document.querySelectorAll("thead select").forEach(s => s.value="");
+
+document.getElementById("minDate").value="";
+document.getElementById("maxDate").value="";
+
+table.draw();
+
+});
+
+</script>
+
+</body>
+</html>
